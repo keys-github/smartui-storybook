@@ -1,4 +1,4 @@
- Smart UI Testing With StoryBook ![Storybook](https://img.shields.io/badge/-Storybook-FF4785?style=for-the-badge&logo=storybook&logoColor=white)
+ <h1>Smart UI Testing With StoryBook</h1>
 
 <img height="400" src="https://user-images.githubusercontent.com/126776938/232535120-b4856bdd-c869-4bcd-bcdb-29a83e30505c.png">
 
@@ -32,6 +32,7 @@
 * [Pre-requisites](#pre-requisites)
 * [Steps To Create A SmartUI Project](#steps-to-create-a-smartui-project)
 * [Running Your First StoryBook SmartUI Test](#running-your-first-storybook-smartui-test)
+* [Setting Up GitHub App Integration With SmartUI](#setting-up-github-app-integration-with-smartui)
 
 
 ## Pre-requisites
@@ -97,7 +98,7 @@ You can now configure your project settings on using various available options t
 smartui config create .smartui.json
 ```
 
-Once, the configuration file will be created, you will be seeing the default configuration pre-filled in the configuration file:
+Once, the configuration file will be created, you will be seeing the default configuration pre-filled in the configuration file. Here is our [StoryBook Sample](https://github.com/LambdaTest/smartui-storybook-sample/tree/master).
 
 ```bash
 {
@@ -121,11 +122,99 @@ Once, the configuration file will be created, you will be seeing the default con
 
 You can now execute your `StoryBook` components for `Visual Regression Testing` using the following options:. Run the following command to run Visual Regression tests on your Storybook components.
 
+**For Locally Hosted Server:**
+
 ```bash
 smartui storybook http://localhost:6006 --config .smartui.json
 ```
 
+**For Static Build:**
+
+```bash
+npm run build-storybook
+smartui storybook ./storybook-static --config .smartui.json 
+```
+
+**For Public Hosted URL:**
+
+```bash
+smartui storybook https://<your_public_hosted_url> --config .smartui.json
+```
+
 You can also provide path to the storybook-static directory instead of the local Storybook URL. Use `--help` for more information on usage.
+
+## Setting Up Github App Integration with SmartUI
+
+### Steps 1: Integrate the your Lambdatest Account with GitHub App. 
+
+You can integrate your LambdaTest account with the GiHub application in the following ways:
+
+- Using OAuth
+
+![github-app-landing-92ef6e152a7302cb9ab88f5034b9ec0c](https://user-images.githubusercontent.com/126776938/232715867-f375b4df-1bc9-4e88-8340-44e986be2e9a.png)
+
+
+### Step 2: Select your GitHub repository 
+
+Go to your GitHub repository where you want to configure your SmartUI project. Check out our GitHub sample [here](https://github.com/LambdaTest/smartui-node-sample).
+
+
+### Step 3: Setting up your CI configuration
+
+Setting up your CI workflow to execute on GitHub. Here is an example setup with `GitHub Actions`:
+
+Go to `.github/workflows/<your_ci_file>.yml`.
+
+```bash
+    name: Storybook PR Checks
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+
+jobs:
+  smartui-gihub-action:
+    name: Execute Storybook build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Find Last CommitId
+      run: |
+        API_HOST=https://api.github.com
+        # Check out the PR branch
+        git checkout $GITHUB_HEAD_REF
+        # Get the commit ID of the last commit
+        COMMIT_ID=$(git rev-parse HEAD)
+        echo "Last commit ID of PR: $COMMIT_ID"
+        GITHUB_URL=$API_HOST/repos/$GITHUB_REPOSITORY/statuses/$COMMIT_ID
+        echo "GITHUB_URL: $GITHUB_URL"
+        echo "GITHUB_URL=$GITHUB_URL" >> $GITHUB_ENV
+   
+    - name: Install Dependencies
+      run: |
+        npm install
+        npm install @lambdatest/smartui-storybook -g
+    - name: Create storybook static build
+      run: npm run build-storybook
+
+    - name: Execute storybook build
+      run: |
+        smartui --version
+        smartui config create .smartui.json
+        smartui storybook ./storybook-static --config .smartui.json
+```
+
+### Step 4: Execute your test suite with CI
+
+After the setup is completed, you can now execute your test suite with the Continuos Integration (CI) pipeline with any tool of your choice.
+
+### Step 5: Commit you changes over git on a branch and raise the PR to main branch.
+
+### Step 6: Now you will see the `lambdatest-smartui-app` in the PR.
 
 ## Documentation & Resources :books:
       
